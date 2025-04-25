@@ -24,9 +24,9 @@ const MarketOverview: React.FC = () => {
                 <p className="font-medium">{index.name}</p>
               </div>
               <div className="text-right">
-                <p className="font-bold">{formatCurrency(index.value, '')}</p>
+                <p className="font-bold">{formatCurrency(index.value, 'TWD')}</p>
                 <p className={`text-sm ${getPriceChangeClass(index.change)}`}>
-                  {formatCurrency(index.change, '')} ({formatPercentage(index.percentChange)})
+                  {formatCurrency(index.change, 'TWD')} ({formatPercentage(index.percentChange)})
                 </p>
               </div>
             </div>

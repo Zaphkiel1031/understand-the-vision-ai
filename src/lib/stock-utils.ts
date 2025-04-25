@@ -25,9 +25,12 @@ export function generateMockStockData(days = 30) {
 
 // Format currency
 export function formatCurrency(value: number, currency = 'USD'): string {
+  // If currency is an empty string, default to 'TWD' (New Taiwan Dollar)
+  const currencyCode = currency === '' ? 'TWD' : currency;
+  
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency,
+    currency: currencyCode,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(value);
