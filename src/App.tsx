@@ -10,6 +10,7 @@ import StockDetail from "./pages/StockDetail";
 import Portfolio from "./pages/Portfolio";
 import SearchPage from "./pages/SearchPage";
 import SettingsPage from "./pages/SettingsPage";
+import PortfolioResult from "./pages/PortfolioResult";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/stock/:id" element={<StockDetail />} />
           <Route path="/portfolio" element={<Portfolio />} />
+          <Route path="/portfolio/result" element={<PortfolioResult />} />
           <Route path="/search" element={<SearchPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/market/:id" element={<StockDetail />} />

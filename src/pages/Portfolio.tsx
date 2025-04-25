@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { formatCurrency, formatPercentage, getPriceChangeClass, mockPortfolio } from "@/lib/stock-utils";
@@ -7,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Plus } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PortfolioForm from "@/components/PortfolioForm";
+import PortfolioInputForm from "@/components/PortfolioInputForm";
 
 const Portfolio = () => {
   const navigate = useNavigate();
@@ -56,10 +56,11 @@ const Portfolio = () => {
         
         {/* Portfolio Tabs */}
         <Tabs defaultValue="summary" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid grid-cols-3 mb-4">
+          <TabsList className="grid grid-cols-4 mb-4">
             <TabsTrigger value="summary">總覽</TabsTrigger>
             <TabsTrigger value="stocks">個股</TabsTrigger>
             <TabsTrigger value="analysis">分析</TabsTrigger>
+            <TabsTrigger value="optimize">最佳化</TabsTrigger>
           </TabsList>
           
           <TabsContent value="summary">
@@ -165,6 +166,13 @@ const Portfolio = () => {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+          
+          <TabsContent value="optimize">
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium mb-4">投資組合最佳化</h3>
+              <PortfolioInputForm />
+            </div>
           </TabsContent>
         </Tabs>
       </main>
