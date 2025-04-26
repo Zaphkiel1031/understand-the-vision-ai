@@ -6,17 +6,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus, X } from "lucide-react";
+import { Slider } from "@/components/ui/slider";
 
 interface Stock {
   symbol: string;
   market: 'TW' | 'US';
+  percentage?: number;
 }
 
 const PortfolioInputForm: React.FC = () => {
   const navigate = useNavigate();
   const [stocks, setStocks] = useState<Stock[]>([{ symbol: '', market: 'TW' }]);
   const [totalInvestment, setTotalInvestment] = useState<string>('');
-
+  const [riskPreference, setRiskPreference] = useState<number>(50);
+  const [isCustomAllocation, setIsCustomAllocation] = useState<boolean>(false);
+  
   const addStock = () => {
     setStocks([...stocks, { symbol: '', market: 'TW' }]);
   };
@@ -26,23 +30,52 @@ const PortfolioInputForm: React.FC = () => {
     setStocks(newStocks);
   };
 
-  const updateStock = (index: number, field: keyof Stock, value: string) => {
+  const updateStock = (index: number, field: keyof Stock, value: string | number) => {
     const newStocks = [...stocks];
-    newStocks[index] = {
-      ...newStocks[index],
-      [field]: field === 'market' ? (value as 'TW' | 'US') : value
-    };
+    if (field === 'market') {
+      newStocks[index] = {
+        ...newStocks[index],
+        [field]: value as 'TW' | 'US'
+      };
+    } else if (field === 'percentage') {
+      newStocks[index] = {
+        ...newStocks[index],
+        [field]: Number(value)
+      };
+    } else {
+      newStocks[index] = {
+        ...newStocks[index],
+        [field]: value as string
+      };
+    }
     setStocks(newStocks);
+  };
+  
+  const calculateRemainingPercentage = () => {
+    const total = stocks.reduce((sum, stock) => sum + (stock.percentage || 0), 0);
+    return 100 - total;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // If custom allocation is not enabled, distribute evenly
+    let stocksWithAllocation = [...stocks];
+    if (!isCustomAllocation) {
+      const evenPercentage = 100 / stocks.length;
+      stocksWithAllocation = stocks.map(stock => ({
+        ...stock,
+        percentage: evenPercentage
+      }));
+    }
+    
     // Here we would normally process the data with an AI model
-    // For now, we'll just pass the data to the results page
     navigate('/portfolio/result', {
       state: {
-        stocks,
-        totalInvestment: parseFloat(totalInvestment)
+        stocks: stocksWithAllocation,
+        totalInvestment: parseFloat(totalInvestment),
+        riskPreference,
+        timeFrame: '中長期（1-3年）' // 預設值
       }
     });
   };
@@ -72,6 +105,20 @@ const PortfolioInputForm: React.FC = () => {
                       required
                     />
                   </div>
+                  
+                  {isCustomAllocation && (
+                    <div className="flex items-center gap-2 mt-2">
+                      <Input
+                        type="number"
+                        min="1"
+                        max="100"
+                        value={stock.percentage || ''}
+                        onChange={(e) => updateStock(index, 'percentage', e.target.value)}
+                        className="w-20"
+                      />
+                      <span>%</span>
+                    </div>
+                  )}
                 </div>
                 {stocks.length > 1 && (
                   <Button
@@ -109,8 +156,45 @@ const PortfolioInputForm: React.FC = () => {
               required
             />
           </div>
+          
+          <div className="space-y-3">
+            <Label>風險偏好</Label>
+            <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
+              <span>保守型</span>
+              <span>平衡型</span>
+              <span>積極型</span>
+            </div>
+            <Slider
+              value={[riskPreference]}
+              min={0}
+              max={100}
+              step={10}
+              onValueChange={(value) => setRiskPreference(value[0])}
+            />
+          </div>
+          
+          <div className="flex items-center space-x-2">
+            <input
+              type="checkbox"
+              id="customAllocation"
+              checked={isCustomAllocation}
+              onChange={(e) => setIsCustomAllocation(e.target.checked)}
+              className="rounded border-gray-300"
+            />
+            <Label htmlFor="customAllocation">自訂投資比例</Label>
+          </div>
+          
+          {isCustomAllocation && (
+            <div className="text-sm text-muted-foreground">
+              剩餘比例：{calculateRemainingPercentage()}%
+            </div>
+          )}
 
-          <Button type="submit" className="w-full">
+          <Button 
+            type="submit" 
+            className="w-full"
+            disabled={isCustomAllocation && calculateRemainingPercentage() !== 0}
+          >
             取得最佳配置建議
           </Button>
         </form>
@@ -120,3 +204,4 @@ const PortfolioInputForm: React.FC = () => {
 };
 
 export default PortfolioInputForm;
+

@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { formatCurrency, formatPercentage, getPriceChangeClass, mockPortfolio } from "@/lib/stock-utils";
@@ -15,8 +16,7 @@ const Portfolio = () => {
   
   const handleAddStock = (stock: { symbol: string; shares: number; price: number }) => {
     console.log("Adding stock:", stock);
-    // In a real app, you would add the stock to the portfolio
-    // and update the state
+    // 在真實應用中，你會將股票添加到投資組合並更新狀態
   };
   
   return (
@@ -170,7 +170,10 @@ const Portfolio = () => {
           
           <TabsContent value="optimize">
             <div className="space-y-4">
-              <h3 className="text-lg font-medium mb-4">投資組合最佳化</h3>
+              <h3 className="text-lg font-medium mb-2">投資組合最佳化</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                填寫您的投資目標和風險偏好，獲取專業投資建議
+              </p>
               <PortfolioInputForm />
             </div>
           </TabsContent>
@@ -184,3 +187,4 @@ const Portfolio = () => {
 };
 
 export default Portfolio;
+
