@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -39,17 +38,13 @@ const PortfolioResult = () => {
     timeFrame: '中長期（1-3年）'
   };
 
-  // 風險和收益等級評估
   const riskLevel = getRiskLevel(riskPreference);
   const returnLevel = getReturnLevel(riskPreference);
   
-  // 模擬配置 - 這裡可以根據 riskPreference 調整配置
   const allocation = stocks.map((stock: any) => {
-    // 根據用戶設定的比例或平均分配
     const percentage = stock.percentage || (100 / stocks.length);
     const amount = (totalInvestment * percentage) / 100;
     
-    // 模擬風險和預期回報
     const riskFactor = (riskPreference / 100) * 10;
     const returnFactor = (riskPreference / 100) * 15;
     
@@ -63,10 +58,8 @@ const PortfolioResult = () => {
     };
   });
   
-  // 模擬投資走勢數據
   const trendData = generateTrendData();
   
-  // 模擬分析數據 - 基本面、技術面、籌碼面、文本面
   const analysisData: AnalysisData[] = allocation.map((stock: StockAllocation) => ({
     fundamental: Math.round(25 + Math.random() * 30),
     technical: Math.round(15 + Math.random() * 30),
@@ -74,7 +67,6 @@ const PortfolioResult = () => {
     textual: Math.round(10 + Math.random() * 20),
   }));
   
-  // 計算分析數據平均
   const averageAnalysis = {
     fundamental: Math.round(analysisData.reduce((sum, data) => sum + data.fundamental, 0) / analysisData.length),
     technical: Math.round(analysisData.reduce((sum, data) => sum + data.technical, 0) / analysisData.length),
@@ -92,14 +84,17 @@ const PortfolioResult = () => {
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
   const savePortfolio = () => {
-    // 這裡未來可以實現保存到數據庫的功能
     toast.success("投資組合已保存！");
     setSavedToPortfolio(true);
   };
 
   const startSimulation = () => {
-    // 這裡未來可以跳轉到模擬系統的頁面
-    toast.info("模擬系統功能即將上線...");
+    navigate('/portfolio/simulation', {
+      state: {
+        stocks: allocation,
+        totalInvestment
+      }
+    });
   };
 
   return (
@@ -331,21 +326,18 @@ const PortfolioResult = () => {
   );
 };
 
-// 根據風險偏好評估風險等級
 function getRiskLevel(riskPreference: number): string {
   if (riskPreference < 30) return "低風險";
   if (riskPreference < 70) return "中等風險";
   return "高風險";
 }
 
-// 根據風險偏好評估預期收益等級
 function getReturnLevel(riskPreference: number): string {
   if (riskPreference < 30) return "低收益 (3-6%)";
   if (riskPreference < 70) return "中等收益 (6-12%)";
   return "高收益 (12%+)";
 }
 
-// 產生模擬走勢數據
 function generateTrendData() {
   const data = [];
   let portfolioValue = 100;
@@ -354,7 +346,6 @@ function generateTrendData() {
   const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
   
   for (let i = 0; i < 12; i++) {
-    // 投資組合表現略優於大盤
     portfolioValue = portfolioValue * (1 + (Math.random() * 0.04 - 0.01));
     benchmarkValue = benchmarkValue * (1 + (Math.random() * 0.035 - 0.015));
     
@@ -369,4 +360,3 @@ function generateTrendData() {
 }
 
 export default PortfolioResult;
-
