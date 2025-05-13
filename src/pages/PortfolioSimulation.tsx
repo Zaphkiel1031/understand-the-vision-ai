@@ -1,11 +1,11 @@
 
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, RefreshCw, Clock } from "lucide-react";
 import { ChartContainer } from "@/components/ui/chart";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { formatCurrency, formatPercentage, getPriceChangeClass } from "@/lib/stock-utils";
 import { toast } from "sonner";
 
@@ -169,7 +169,7 @@ const PortfolioSimulation = () => {
   const changeClass = getPriceChangeClass(totalPercentChange);
   
   return (
-    <div className="pb-16 max-w-lg mx-auto">
+    <div className="pb-16 max-w-md mx-auto">
       <header className="sticky top-0 z-10 bg-background p-4 border-b border-border flex items-center justify-between">
         <div className="flex items-center">
           <button 
@@ -178,7 +178,7 @@ const PortfolioSimulation = () => {
           >
             <ArrowLeft size={20} />
           </button>
-          <h1 className="text-xl font-bold">投資組合模擬</h1>
+          <h1 className="text-xl font-bold">組合模擬</h1>
         </div>
         
         <div className="flex items-center gap-2">
@@ -196,50 +196,44 @@ const PortfolioSimulation = () => {
       </header>
 
       <main className="p-4 space-y-6">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle>投資組合價值</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{formatCurrency(portfolioValue, 'TWD')}</p>
-            <p className={changeClass}>
-              {formatCurrency(totalChange, 'TWD')} ({formatPercentage(totalPercentChange)})
-            </p>
-          </CardContent>
+        <Card className="p-4">
+          <p className="text-sm text-muted-foreground mb-1">投資組合價值</p>
+          <p className="text-2xl font-bold">{formatCurrency(portfolioValue, 'TWD')}</p>
+          <p className={changeClass}>
+            {formatCurrency(totalChange, 'TWD')} ({formatPercentage(totalPercentChange)})
+          </p>
         </Card>
         
         <Card>
-          <CardHeader className="pb-2">
-            <CardTitle>組合走勢</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-64">
+          <CardContent className="p-3">
+            <div className="h-48">
               <ChartContainer config={{}} className="h-full">
-                <LineChart data={portfolioHistory}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis 
-                    dataKey="time" 
-                    tick={{fontSize: 10}}
-                    interval={Math.ceil(portfolioHistory.length / 5) - 1}
-                  />
-                  <YAxis 
-                    domain={['dataMin - 1000', 'dataMax + 1000']}
-                    tick={{fontSize: 10}}
-                  />
-                  <Tooltip 
-                    formatter={(value: any) => [formatCurrency(value, 'TWD')]}
-                    labelFormatter={(label: any) => `時間: ${label}`}
-                  />
-                  <Legend />
-                  <Line 
-                    type="monotone" 
-                    dataKey="value" 
-                    name="投資組合價值" 
-                    stroke="#8884d8" 
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                </LineChart>
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={portfolioHistory}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis 
+                      dataKey="time" 
+                      tick={{fontSize: 10}}
+                      interval={Math.ceil(portfolioHistory.length / 5) - 1}
+                    />
+                    <YAxis 
+                      domain={['dataMin - 1000', 'dataMax + 1000']}
+                      tick={{fontSize: 10}}
+                    />
+                    <Tooltip 
+                      formatter={(value: any) => [formatCurrency(value, 'TWD')]}
+                      labelFormatter={(label: any) => `時間: ${label}`}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="value" 
+                      name="投資組合價值" 
+                      stroke="#8884d8" 
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
               </ChartContainer>
             </div>
           </CardContent>
@@ -265,31 +259,33 @@ const PortfolioSimulation = () => {
                   </div>
                 </div>
                 
-                <div className="h-32">
+                <div className="h-24">
                   <ChartContainer config={{}} className="h-full">
-                    <LineChart data={stock.history}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis 
-                        dataKey="time" 
-                        tick={{fontSize: 8}}
-                        interval={Math.ceil(stock.history.length / 3) - 1}
-                      />
-                      <YAxis 
-                        domain={['dataMin - 5', 'dataMax + 5']}
-                        tick={{fontSize: 8}}
-                      />
-                      <Tooltip 
-                        formatter={(value: any) => [`${value.toFixed(2)}`, '價格']}
-                        labelFormatter={(label: any) => `時間: ${label}`}
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="price" 
-                        name="價格" 
-                        stroke="#82ca9d" 
-                        dot={false}
-                      />
-                    </LineChart>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={stock.history}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="time" 
+                          tick={{fontSize: 8}}
+                          interval={Math.ceil(stock.history.length / 3) - 1}
+                        />
+                        <YAxis 
+                          domain={['dataMin - 5', 'dataMax + 5']}
+                          tick={{fontSize: 8}}
+                        />
+                        <Tooltip 
+                          formatter={(value: any) => [`${value.toFixed(2)}`, '價格']}
+                          labelFormatter={(label: any) => `時間: ${label}`}
+                        />
+                        <Line 
+                          type="monotone" 
+                          dataKey="price" 
+                          name="價格" 
+                          stroke="#82ca9d" 
+                          dot={false}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
                   </ChartContainer>
                 </div>
               </CardContent>

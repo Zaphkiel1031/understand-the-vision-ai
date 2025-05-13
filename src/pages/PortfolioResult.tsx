@@ -1,12 +1,13 @@
+
 import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, PieChart, ChartBar, Save, TrendingUp } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { ArrowLeft, Save, TrendingUp } from "lucide-react";
 import { formatCurrency, formatPercentage } from "@/lib/stock-utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { ChartContainer } from "@/components/ui/chart";
-import { PieChart as RechartsChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar } from "recharts";
+import { PieChart as RechartsChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from "recharts";
 import { toast } from "sonner";
 
 interface StockAllocation {
@@ -19,69 +20,52 @@ interface StockAllocation {
   return: number;
 }
 
-interface AnalysisData {
-  fundamental: number;
-  technical: number;
-  chip: number;
-  textual: number;
-}
-
 const PortfolioResult = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [savedToPortfolio, setSavedToPortfolio] = useState(false);
 
-  const { stocks, totalInvestment, riskPreference, timeFrame } = location.state || {
+  const { stocks, totalInvestment, riskPreference } = location.state || {
     stocks: [],
     totalInvestment: 0,
     riskPreference: 50,
-    timeFrame: '中長期（1-3年）'
   };
 
-  const riskLevel = getRiskLevel(riskPreference);
-  const returnLevel = getReturnLevel(riskPreference);
-  
+  // 生成分配比例
   const allocation = stocks.map((stock: any) => {
     const percentage = stock.percentage || (100 / stocks.length);
     const amount = (totalInvestment * percentage) / 100;
-    
-    const riskFactor = (riskPreference / 100) * 10;
-    const returnFactor = (riskPreference / 100) * 15;
     
     return {
       ...stock,
       allocation: percentage,
       amount: amount,
       percentage: percentage,
-      risk: Math.round(riskFactor * (0.8 + Math.random() * 0.4)),
-      return: Math.round(returnFactor * (0.9 + Math.random() * 0.6))
+      risk: Math.round((riskPreference / 100) * 10 * (0.8 + Math.random() * 0.4)),
+      return: Math.round((riskPreference / 100) * 15 * (0.9 + Math.random() * 0.6))
     };
   });
   
+  // 走勢數據
   const trendData = generateTrendData();
   
-  const analysisData: AnalysisData[] = allocation.map((stock: StockAllocation) => ({
-    fundamental: Math.round(25 + Math.random() * 30),
-    technical: Math.round(15 + Math.random() * 30),
-    chip: Math.round(15 + Math.random() * 25),
-    textual: Math.round(10 + Math.random() * 20),
-  }));
-  
-  const averageAnalysis = {
-    fundamental: Math.round(analysisData.reduce((sum, data) => sum + data.fundamental, 0) / analysisData.length),
-    technical: Math.round(analysisData.reduce((sum, data) => sum + data.technical, 0) / analysisData.length),
-    chip: Math.round(analysisData.reduce((sum, data) => sum + data.chip, 0) / analysisData.length),
-    textual: Math.round(analysisData.reduce((sum, data) => sum + data.textual, 0) / analysisData.length),
-  };
-  
+  // 四個面向數據（均等配置25%）
+  const COLORS = ['#7BC67B', '#79B4F9', '#FFD066', '#D1D6E6'];
+
+  // 四面向數據
   const analysisChartData = [
-    { name: "基本面", value: averageAnalysis.fundamental },
-    { name: "技術面", value: averageAnalysis.technical },
-    { name: "籌碼面", value: averageAnalysis.chip },
-    { name: "文本面", value: averageAnalysis.textual },
+    { name: "基本面", value: 25 },
+    { name: "技術面", value: 25 },
+    { name: "籌碼面", value: 25 },
+    { name: "文本面", value: 25 },
   ];
   
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
+  // 個股詳情
+  const stockDetails = [
+    { id: 1, name: "個股 1" },
+    { id: 2, name: "個股 2" },
+    { id: 3, name: "個股 3" }
+  ];
 
   const savePortfolio = () => {
     toast.success("投資組合已保存！");
@@ -98,7 +82,7 @@ const PortfolioResult = () => {
   };
 
   return (
-    <div className="pb-16 max-w-lg mx-auto">
+    <div className="pb-16 max-w-md mx-auto">
       <header className="sticky top-0 z-10 bg-background p-4 border-b border-border flex items-center">
         <button 
           onClick={() => navigate(-1)}
@@ -110,201 +94,168 @@ const PortfolioResult = () => {
       </header>
 
       <main className="p-4 space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>投資總額</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">
-              {formatCurrency(totalInvestment, 'TWD')}
-            </p>
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              <div>
-                <p className="text-sm text-muted-foreground">風險等級</p>
-                <p className="text-lg font-medium">{riskLevel}</p>
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">預期收益</p>
-                <p className="text-lg font-medium">{returnLevel}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* 投資組合列表 */}
+        <div className="flex overflow-x-auto gap-2 pb-2">
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i} className="flex-shrink-0 p-2 min-w-[120px]">
+              <p className="text-sm font-medium">投資組合 ({i})</p>
+            </Card>
+          ))}
+        </div>
 
-        <Tabs defaultValue="allocation">
-          <TabsList className="grid grid-cols-4 mb-4">
-            <TabsTrigger value="allocation">配置</TabsTrigger>
-            <TabsTrigger value="analysis">分析</TabsTrigger>
-            <TabsTrigger value="trend">走勢</TabsTrigger>
-            <TabsTrigger value="stocks">個股</TabsTrigger>
+        <Tabs defaultValue="trend">
+          <TabsList className="grid grid-cols-2 mb-4">
+            <TabsTrigger value="trend">報酬曲線</TabsTrigger>
+            <TabsTrigger value="risk">風險曲線</TabsTrigger>
           </TabsList>
           
-          <TabsContent value="allocation">
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle>建議配置</CardTitle>
-                  <PieChart className="h-5 w-5 text-muted-foreground" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex justify-center mb-6">
-                  <ChartContainer config={{}} className="h-64 w-64">
-                    <PieChart>
-                      <Pie
-                        data={allocation}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="allocation"
-                        nameKey="symbol"
-                        label={(entry) => `${entry.symbol} ${entry.allocation.toFixed(0)}%`}
-                      >
-                        {allocation.map((entry: any, index: number) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
+          <TabsContent value="trend" className="mt-0">
+            <Card className="overflow-hidden">
+              <CardContent className="p-0">
+                <div className="h-48">
+                  <ChartContainer config={{}} className="h-full w-full">
+                    <LineChart data={trendData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" tick={{fontSize: 10}} />
+                      <YAxis tick={{fontSize: 10}} />
                       <Tooltip />
-                    </PieChart>
+                      <Line 
+                        type="monotone" 
+                        dataKey="portfolio" 
+                        name="投資組合" 
+                        stroke="#8884d8" 
+                        strokeWidth={2} 
+                        dot={false} 
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="benchmark" 
+                        name="大盤指數" 
+                        stroke="#82ca9d" 
+                        strokeWidth={2} 
+                        dot={false} 
+                      />
+                    </LineChart>
                   </ChartContainer>
                 </div>
-                
-                <div className="space-y-4">
-                  {allocation.map((stock: StockAllocation, index: number) => (
-                    <div key={index} className="flex justify-between items-center py-2 border-b last:border-0">
-                      <div>
-                        <p className="font-medium">{stock.symbol}</p>
-                        <p className="text-sm text-muted-foreground">{stock.market === 'TW' ? '台股' : '美股'}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-bold">{formatCurrency(stock.amount, 'TWD')}</p>
-                        <p className="text-sm text-muted-foreground">{formatPercentage(stock.allocation)}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
               </CardContent>
             </Card>
           </TabsContent>
           
-          <TabsContent value="analysis">
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle>投資分析</CardTitle>
-                  <ChartBar className="h-5 w-5 text-muted-foreground" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="mb-4 text-sm">投資期限：{timeFrame}</p>
-                
-                <ChartContainer config={{}} className="h-64">
-                  <BarChart data={analysisChartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="value" fill="#8884d8" name="占比">
-                      {analysisChartData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ChartContainer>
-                
-                <div className="mt-6 space-y-3">
-                  <div className="flex justify-between">
-                    <span>基本面分析</span>
-                    <span className="font-medium">{averageAnalysis.fundamental}%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>技術面分析</span>
-                    <span className="font-medium">{averageAnalysis.technical}%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>籌碼面分析</span>
-                    <span className="font-medium">{averageAnalysis.chip}%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>文本面分析</span>
-                    <span className="font-medium">{averageAnalysis.textual}%</span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="trend">
-            <Card>
-              <CardHeader>
-                <div className="flex justify-between items-center">
-                  <CardTitle>預估走勢</CardTitle>
-                  <TrendingUp className="h-5 w-5 text-muted-foreground" />
-                </div>
-              </CardHeader>
-              <CardContent>
-                <ChartContainer config={{}} className="h-64">
-                  <LineChart data={trendData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line type="monotone" dataKey="portfolio" name="投資組合" stroke="#8884d8" strokeWidth={2} />
-                    <Line type="monotone" dataKey="benchmark" name="大盤指數" stroke="#82ca9d" strokeWidth={2} />
-                  </LineChart>
-                </ChartContainer>
-                
-                <div className="mt-6 text-sm text-muted-foreground">
-                  <p>* 此走勢圖為預估數據，僅供參考</p>
-                  <p>* 實際收益將受市場因素影響</p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="stocks">
-            <Card>
-              <CardHeader>
-                <CardTitle>個股表現</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-6">
-                  {allocation.map((stock: StockAllocation, index: number) => (
-                    <div key={index} className="pb-4 border-b last:border-b-0">
-                      <div className="flex justify-between items-center mb-2">
-                        <h3 className="font-medium">{stock.symbol}</h3>
-                        <span className="text-sm bg-primary/10 text-primary px-2 py-1 rounded">
-                          {stock.market === 'TW' ? '台股' : '美股'}
-                        </span>
-                      </div>
-                      
-                      <div className="grid grid-cols-2 gap-4 mb-4">
-                        <div>
-                          <p className="text-sm text-muted-foreground">風險指數</p>
-                          <p className="text-lg font-medium">{stock.risk}/10</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">預期年化收益</p>
-                          <p className="text-lg font-medium">{stock.return}%</p>
-                        </div>
-                      </div>
-                      
-                      <div className="text-sm">
-                        <p className="mb-1">投資金額：{formatCurrency(stock.amount, 'TWD')}</p>
-                        <p>佔比：{formatPercentage(stock.percentage)}</p>
-                      </div>
-                    </div>
-                  ))}
+          <TabsContent value="risk" className="mt-0">
+            <Card className="overflow-hidden">
+              <CardContent className="p-0">
+                <div className="h-48">
+                  <ChartContainer config={{}} className="h-full w-full">
+                    <LineChart data={trendData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="month" tick={{fontSize: 10}} />
+                      <YAxis tick={{fontSize: 10}} />
+                      <Tooltip />
+                      <Line 
+                        type="monotone" 
+                        dataKey="risk" 
+                        name="風險曲線" 
+                        stroke="#ff7300" 
+                        strokeWidth={2} 
+                        dot={false} 
+                      />
+                    </LineChart>
+                  </ChartContainer>
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
         
-        <div className="grid grid-cols-2 gap-4">
+        {/* 四面向分析 */}
+        <div>
+          <div className="flex justify-between items-center mb-2">
+            <h2 className="font-medium">四面向</h2>
+          </div>
+          
+          <div className="flex justify-center mb-4">
+            <div className="relative w-40 h-40">
+              <ChartContainer config={{}} className="h-full w-full">
+                <RechartsChart>
+                  <Pie
+                    data={analysisChartData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={30}
+                    outerRadius={60}
+                    fill="#8884d8"
+                    paddingAngle={2}
+                    dataKey="value"
+                  >
+                    {analysisChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <text x="50%" y="50%" textAnchor="middle" dominantBaseline="middle" className="text-sm font-bold">
+                    25
+                  </text>
+                </RechartsChart>
+              </ChartContainer>
+              
+              {/* 標籤 */}
+              <div className="absolute top-2 right-0 text-xs">
+                <span className="inline-block w-3 h-3 rounded-full bg-[#D1D6E6] mr-1"></span>
+                <span>文本面</span>
+              </div>
+              <div className="absolute top-2 left-0 text-xs">
+                <span className="inline-block w-3 h-3 rounded-full bg-[#7BC67B] mr-1"></span>
+                <span>基本面</span>
+              </div>
+              <div className="absolute bottom-2 right-0 text-xs">
+                <span className="inline-block w-3 h-3 rounded-full bg-[#79B4F9] mr-1"></span>
+                <span>技術面</span>
+              </div>
+              <div className="absolute bottom-2 left-0 text-xs">
+                <span className="inline-block w-3 h-3 rounded-full bg-[#FFD066] mr-1"></span>
+                <span>籌碼面</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* 個股列表 */}
+        <div className="flex gap-2 overflow-x-auto pb-2">
+          {stockDetails.map((stock) => (
+            <Card key={stock.id} className="flex-shrink-0 p-2 min-w-[100px]">
+              <p className="text-xs font-medium text-center">{stock.name}</p>
+            </Card>
+          ))}
+        </div>
+        
+        {/* 四面向按鈕 */}
+        <div className="grid grid-cols-4 gap-2">
+          <Card className="p-2 flex flex-col items-center">
+            <p className="text-xs mb-1">基本面</p>
+            <div className="text-2xl">🙂</div>
+          </Card>
+          <Card className="p-2 flex flex-col items-center">
+            <p className="text-xs mb-1">技術面</p>
+            <div className="text-2xl">🙂</div>
+          </Card>
+          <Card className="p-2 flex flex-col items-center">
+            <p className="text-xs mb-1">籌碼面</p>
+            <div className="text-2xl">😐</div>
+          </Card>
+          <Card className="p-2 flex flex-col items-center">
+            <p className="text-xs mb-1">文本面</p>
+            <div className="text-2xl">🙂</div>
+          </Card>
+        </div>
+        
+        {/* 操作按鈕 */}
+        <div className="grid grid-cols-3 gap-2">
+          <Button 
+            variant="destructive" 
+            className="w-full"
+          >
+            丟棄此組合
+          </Button>
           <Button 
             variant="outline" 
             className="w-full"
@@ -312,13 +263,13 @@ const PortfolioResult = () => {
             disabled={savedToPortfolio}
           >
             <Save className="mr-2 h-4 w-4" />
-            {savedToPortfolio ? "已儲存" : "儲存組合"}
+            保存此組合
           </Button>
           <Button 
             className="w-full"
             onClick={startSimulation}
           >
-            開始模擬
+            開始組合模擬
           </Button>
         </div>
       </main>
@@ -326,33 +277,24 @@ const PortfolioResult = () => {
   );
 };
 
-function getRiskLevel(riskPreference: number): string {
-  if (riskPreference < 30) return "低風險";
-  if (riskPreference < 70) return "中等風險";
-  return "高風險";
-}
-
-function getReturnLevel(riskPreference: number): string {
-  if (riskPreference < 30) return "低收益 (3-6%)";
-  if (riskPreference < 70) return "中等收益 (6-12%)";
-  return "高收益 (12%+)";
-}
-
 function generateTrendData() {
   const data = [];
   let portfolioValue = 100;
   let benchmarkValue = 100;
+  let riskValue = 30;
   
   const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
   
   for (let i = 0; i < 12; i++) {
     portfolioValue = portfolioValue * (1 + (Math.random() * 0.04 - 0.01));
     benchmarkValue = benchmarkValue * (1 + (Math.random() * 0.035 - 0.015));
+    riskValue = riskValue * (1 + (Math.random() * 0.02 - 0.01));
     
     data.push({
       month: months[i],
       portfolio: parseFloat(portfolioValue.toFixed(2)),
       benchmark: parseFloat(benchmarkValue.toFixed(2)),
+      risk: parseFloat(riskValue.toFixed(2)),
     });
   }
   
