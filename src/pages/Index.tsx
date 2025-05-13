@@ -9,12 +9,17 @@ import StockNews from "@/components/StockNews";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { ChartContainer } from "@/components/ui/chart";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid } from "recharts";
 
 const Index = () => {
   const navigate = useNavigate();
   
   // 熱門股票
   const hotStocks = mockStocks.slice(0, 3);
+  
+  // 生成走勢圖數據
+  const chartData = generateChartData();
   
   return (
     <div className="pb-16 max-w-md mx-auto">
@@ -78,12 +83,20 @@ const Index = () => {
         {/* 走勢圖 */}
         <Card className="p-3">
           <div className="h-40 w-full">
-            <img 
-              src="/lovable-uploads/180a042e-1f49-4323-98b9-c842dcdd559f.png" 
-              alt="走勢圖" 
-              className="h-full w-full object-contain"
-              style={{objectPosition: '0 33%'}}
-            />
+            <ChartContainer config={{}} className="h-full w-full">
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="time" tick={{fontSize: 10}} />
+                <YAxis domain={['dataMin - 5', 'dataMax + 5']} tick={{fontSize: 10}} />
+                <Line 
+                  type="monotone" 
+                  dataKey="value" 
+                  stroke="#8884d8" 
+                  strokeWidth={2} 
+                  dot={false} 
+                />
+              </LineChart>
+            </ChartContainer>
           </div>
           <div className="flex justify-between text-xs mt-2">
             <span>9</span>
@@ -173,5 +186,28 @@ const Index = () => {
     </div>
   );
 };
+
+// 生成走勢圖數據
+function generateChartData() {
+  const data = [];
+  let baseValue = 22000;
+  
+  for (let hour = 9; hour < 14; hour++) {
+    for (let minute = 0; minute < 60; minute += 30) {
+      if ((hour === 9 && minute < 30) || (hour === 13 && minute >= 30)) continue;
+      
+      // 產生小的隨機波動
+      const variation = (Math.random() - 0.5) * 100;
+      baseValue += variation;
+      
+      data.push({
+        time: `${hour}:${minute.toString().padStart(2, '0')}`,
+        value: parseFloat(baseValue.toFixed(2))
+      });
+    }
+  }
+  
+  return data;
+}
 
 export default Index;

@@ -8,6 +8,8 @@ import { ArrowLeft, Plus } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PortfolioForm from "@/components/PortfolioForm";
 import PortfolioInputForm from "@/components/PortfolioInputForm";
+import { ChartContainer } from "@/components/ui/chart";
+import { PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid } from "recharts";
 
 const Portfolio = () => {
   const navigate = useNavigate();
@@ -18,6 +20,17 @@ const Portfolio = () => {
     console.log("Adding stock:", stock);
     // 在真實應用中，你會將股票添加到投資組合並更新狀態
   };
+
+  // 產生資產配置數據
+  const assetAllocationData = [
+    { name: "科技", value: 45, color: "#4CAF50" },
+    { name: "金融", value: 25, color: "#2196F3" },
+    { name: "消費", value: 15, color: "#FFC107" },
+    { name: "其他", value: 15, color: "#9E9E9E" },
+  ];
+  
+  // 產生走勢圖數據
+  const trendData = generateTrendData();
   
   return (
     <div className="pb-16 max-w-md mx-auto">
@@ -64,12 +77,69 @@ const Portfolio = () => {
           </TabsList>
           
           <TabsContent value="summary">
-            {/* Performance Chart Placeholder */}
+            {/* Performance Chart */}
             <Card className="mb-6">
               <CardContent className="p-6">
                 <h3 className="text-lg font-medium mb-4">資產配置</h3>
-                <div className="bg-muted h-40 rounded-md flex items-center justify-center">
-                  <p className="text-muted-foreground">資產配置圖表</p>
+                <div className="h-60 relative">
+                  <ChartContainer config={{}} className="h-full w-full">
+                    <PieChart>
+                      <Pie
+                        data={assetAllocationData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        paddingAngle={2}
+                        dataKey="value"
+                      >
+                        {assetAllocationData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  </ChartContainer>
+                  
+                  {/* Legend */}
+                  <div className="absolute top-0 right-0 space-y-2">
+                    {assetAllocationData.map((entry, index) => (
+                      <div key={index} className="flex items-center">
+                        <div 
+                          className="w-3 h-3 rounded-full mr-2" 
+                          style={{ backgroundColor: entry.color }}
+                        ></div>
+                        <span className="text-xs">{entry.name} {entry.value}%</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            {/* Portfolio Trend Chart */}
+            <Card className="mb-6">
+              <CardContent className="p-6">
+                <h3 className="text-lg font-medium mb-4">組合走勢</h3>
+                <div className="h-40">
+                  <ChartContainer config={{}} className="h-full w-full">
+                    <LineChart data={trendData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis 
+                        dataKey="date" 
+                        tick={{fontSize: 10}}
+                        tickFormatter={(value) => value.substring(5)}
+                      />
+                      <YAxis tick={{fontSize: 10}} />
+                      <Line 
+                        type="monotone" 
+                        dataKey="value" 
+                        stroke="#8884d8" 
+                        strokeWidth={2} 
+                        dot={false} 
+                      />
+                    </LineChart>
+                  </ChartContainer>
                 </div>
               </CardContent>
             </Card>
@@ -138,8 +208,29 @@ const Portfolio = () => {
               <CardContent className="p-6">
                 <h3 className="text-lg font-medium mb-4">投資分析</h3>
                 <div className="space-y-6">
-                  <div className="bg-muted h-40 rounded-md flex items-center justify-center mb-4">
-                    <p className="text-muted-foreground">行業分佈圖表</p>
+                  <div className="h-60 flex items-center justify-center">
+                    <ChartContainer config={{}} className="h-full w-full">
+                      <PieChart>
+                        <Pie
+                          data={[
+                            { name: "基本面", value: 25, color: "#4CAF50" },
+                            { name: "技術面", value: 25, color: "#2196F3" },
+                            { name: "籌碼面", value: 25, color: "#FFC107" },
+                            { name: "文本面", value: 25, color: "#9E9E9E" },
+                          ]}
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                          label={(entry) => entry.name}
+                        >
+                          {assetAllocationData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                      </PieChart>
+                    </ChartContainer>
                   </div>
                   
                   <div>
@@ -186,5 +277,27 @@ const Portfolio = () => {
   );
 };
 
-export default Portfolio;
+// 生成走勢圖數據
+function generateTrendData() {
+  const data = [];
+  let value = 100;
+  
+  const now = new Date();
+  for (let i = 30; i >= 0; i--) {
+    const date = new Date();
+    date.setDate(now.getDate() - i);
+    const dateString = date.toISOString().split('T')[0];
+    
+    // 產生一個小的隨機波動
+    value = value * (1 + (Math.random() * 0.04 - 0.02));
+    
+    data.push({
+      date: dateString,
+      value: parseFloat(value.toFixed(2)),
+    });
+  }
+  
+  return data;
+}
 
+export default Portfolio;
